@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickFlash · Flashcard Study</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #0f1923;
+      --ink-2: #3d5166;
+      --ink-3: #7a93a8;
+      --paper: #f5f0e8;
+      --paper-2: #ede7d9;
+      --paper-3: #e0d8c8;
+      --accent: #2e7d4f;
+      --accent-2: #1f5a3a;
+      --known-bg: #e8f2eb;
+      --known-border: #2e7d4f;
+      --learn-bg: #f5e8e8;
+      --learn-border: #c84b2f;
+      --shadow: 0 4px 32px rgba(15,25,35,0.12);
+      --radius: 6px;
+    }
+
+    body.dark {
+      --ink: #e8e0d0;
+      --ink-2: #a8b8c8;
+      --ink-3: #607080;
+      --paper: #141c24;
+      --paper-2: #1c2732;
+      --paper-3: #253040;
+      --accent: #3a9e60;
+      --accent-2: #2e7d4f;
+      --known-bg: #182a1e;
+      --known-border: #3a9e60;
+      --learn-bg: #2a1616;
+      --learn-border: #e06040;
+      --shadow: 0 4px 40px rgba(0,0,0,0.4);
+    }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 20px 60px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .platform { width: 100%; max-width: 780px; }
+
+    /* TOP BAR */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 36px;
+    }
+    .wordmark {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.5rem;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+    .wordmark span { color: var(--accent); }
+    .theme-btn {
+      background: var(--paper-2);
+      border: 1px solid var(--paper-3);
+      color: var(--ink-2);
+      border-radius: var(--radius);
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .theme-btn:hover { background: var(--paper-3); color: var(--ink); }
+
+    /* PANELS */
+    .card {
+      background: var(--paper-2);
+      border: 1px solid var(--paper-3);
+      border-radius: 12px;
+      padding: 36px;
+      box-shadow: var(--shadow);
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    /* START SCREEN */
+    .start-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.6rem;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .start-subtitle { color: var(--ink-3); font-size: 0.95rem; margin-bottom: 36px; }
+
+    .drop-zone {
+      border: 2px dashed var(--paper-3);
+      border-radius: 10px;
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-bottom: 24px;
+      position: relative;
+    }
+    .drop-zone:hover, .drop-zone.drag-over { border-color: var(--accent); background: var(--paper); }
+    .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+    .drop-icon { font-size: 2.2rem; margin-bottom: 10px; }
+    .drop-text { font-size: 1rem; color: var(--ink-2); font-weight: 500; }
+    .drop-hint { font-size: 0.8rem; color: var(--ink-3); margin-top: 4px; }
+    .file-loaded .drop-text { color: var(--known-border); }
+
+    .config-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .config-group label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-3);
+      margin-bottom: 6px;
+    }
+    .config-group input, .config-group select {
+      width: 100%;
+      background: var(--paper);
+      border: 1px solid var(--paper-3);
+      color: var(--ink);
+      border-radius: var(--radius);
+      padding: 9px 14px;
+      font-size: 0.95rem;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: 0.15s;
+    }
+    .config-group input:focus, .config-group select:focus { border-color: var(--accent); }
+
+    .start-btn {
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      padding: 15px;
+      font-size: 1.05rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: 0.15s;
+    }
+    .start-btn:hover:not(:disabled) { background: var(--accent-2); }
+    .start-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .format-hint {
+      margin-top: 20px;
+      padding: 14px 16px;
+      background: var(--paper);
+      border-left: 3px solid var(--paper-3);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      font-size: 0.82rem;
+      color: var(--ink-3);
+      line-height: 1.7;
+    }
+    .format-hint code {
+      font-family: monospace;
+      font-size: 0.8rem;
+      background: var(--paper-3);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: var(--ink-2);
+    }
+
+    /* STUDY HEADER */
+    .study-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .progress-track { flex: 1; margin-right: 20px; }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--ink-3);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .progress-bar-bg { height: 5px; background: var(--paper-3); border-radius: 99px; overflow: hidden; }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 99px;
+      transition: width 0.3s ease;
+    }
+    .mastery-badge {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.5rem;
+      color: var(--known-border);
+      min-width: 56px;
+      text-align: right;
+      line-height: 1;
+    }
+
+    /* CARD MAP */
+    .card-map {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 24px;
+    }
+    .map-dot {
+      width: 28px; height: 28px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.12s;
+      background: var(--paper);
+      border: 1px solid var(--paper-3);
+      color: var(--ink-3);
+    }
+    .map-dot:hover { border-color: var(--accent); color: var(--accent); }
+    .map-dot.current { border-color: var(--accent); color: var(--accent); background: var(--paper-2); box-shadow: 0 0 0 2px var(--accent); }
+    .map-dot.seen     { background: var(--ink-3);       color: white; border-color: var(--ink-3);       }
+    .map-dot.known    { background: var(--known-border); color: white; border-color: var(--known-border); }
+    .map-dot.learning { background: var(--learn-border); color: white; border-color: var(--learn-border); }
+
+    /* 3D FLASHCARD */
+    .fc-scene {
+      perspective: 1200px;
+      min-height: 280px;
+      margin-bottom: 8px;
+    }
+    .fc-card {
+      width: 100%;
+      min-height: 280px;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      border-radius: 16px;
+    }
+    .fc-card.flipped { transform: rotateY(180deg); }
+    .fc-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border-radius: 16px;
+      padding: 48px 32px;
+      background: var(--paper);
+      border: 1px solid var(--paper-3);
+      box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+      user-select: none;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .fc-face.fc-back { transform: rotateY(180deg); background: var(--paper-2); }
+
+    .face-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--ink-3);
+      margin-bottom: 20px;
+    }
+    .face-badge.is-front { color: var(--accent); }
+    .face-content {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.8rem;
+      line-height: 1.4;
+      color: var(--ink);
+    }
+    .face-hint {
+      font-size: 0.82rem;
+      color: var(--ink-3);
+      margin-top: 16px;
+      font-style: italic;
+    }
+
+    /* FLIP AREA */
+    .flip-area {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 12px 0 4px;
+      min-height: 28px;
+    }
+    .flip-hint-text { font-size: 0.8rem; color: var(--ink-3); }
+    .flip-hint-text kbd {
+      background: var(--paper-3);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: monospace;
+    }
+
+    /* RATING BAR */
+    .rating-bar {
+      display: flex;
+      gap: 10px;
+      margin: 16px 0 24px;
+      opacity: 0;
+      transform: translateY(6px);
+      pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s;
+    }
+    .rating-bar.visible { opacity: 1; transform: translateY(0); pointer-events: all; }
+    .rating-bar .btn { flex: 1; font-size: 0.95rem; padding: 13px; }
+
+    /* BUTTONS */
+    .btn {
+      background: var(--paper);
+      border: 1px solid var(--paper-3);
+      color: var(--ink);
+      border-radius: var(--radius);
+      padding: 10px 20px;
+      font-size: 0.9rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .btn:hover:not(:disabled) { background: var(--paper-3); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn.primary:hover:not(:disabled) { background: var(--accent-2); border-color: var(--accent-2); }
+    .btn-known { background: var(--known-bg) !important; border-color: var(--known-border) !important; color: var(--known-border) !important; }
+    .btn-known:hover:not(:disabled) { background: var(--known-border) !important; color: white !important; }
+    .btn-learning { background: var(--learn-bg) !important; border-color: var(--learn-border) !important; color: var(--learn-border) !important; }
+    .btn-learning:hover:not(:disabled) { background: var(--learn-border) !important; color: white !important; }
+
+    .nav-bar { display: flex; justify-content: space-between; align-items: center; }
+    .nav-group { display: flex; gap: 8px; }
+
+    .key-hint {
+      margin-top: 20px;
+      font-size: 0.75rem;
+      color: var(--ink-3);
+      text-align: center;
+    }
+    .key-hint kbd {
+      background: var(--paper-3);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: monospace;
+    }
+
+    /* RESULT SCREEN */
+    .result-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.6rem;
+      line-height: 1.1;
+      margin-bottom: 6px;
+    }
+    .result-subtitle { color: var(--ink-3); font-size: 0.95rem; margin-bottom: 28px; }
+    .result-bar-wrap { margin-bottom: 28px; }
+    .result-bar-bg { height: 8px; background: var(--paper-3); border-radius: 99px; overflow: hidden; }
+    .result-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: var(--known-border);
+      transition: width 1s ease;
+      width: 0%;
+    }
+
+    .result-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .stat-box {
+      background: var(--paper);
+      border: 1px solid var(--paper-3);
+      border-radius: var(--radius);
+      padding: 16px 10px;
+      text-align: center;
+    }
+    .stat-box.stat-known    { background: var(--known-bg); border-color: var(--known-border); }
+    .stat-box.stat-learning { background: var(--learn-bg); border-color: var(--learn-border); }
+    .stat-value {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.8rem;
+      color: var(--ink);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-box.stat-known    .stat-value { color: var(--known-border); }
+    .stat-box.stat-learning .stat-value { color: var(--learn-border); }
+    .stat-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-3);
+    }
+
+    .result-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+    .result-actions .btn { flex: 1; min-width: 130px; }
+
+    /* REVIEW */
+    .review-section { display: none; margin-top: 20px; }
+    .review-list { display: flex; flex-direction: column; gap: 8px; }
+    .review-item {
+      padding: 14px 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--paper-3);
+      background: var(--paper);
+    }
+    .review-item.known-item    { background: var(--known-bg); border-color: var(--known-border); }
+    .review-item.learning-item { background: var(--learn-bg); border-color: var(--learn-border); }
+    .review-status {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+      color: var(--ink-3);
+    }
+    .known-item    .review-status { color: var(--known-border); }
+    .learning-item .review-status { color: var(--learn-border); }
+    .review-front { font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; }
+    .review-back  { font-size: 0.88rem; color: var(--ink-2); }
+
+    /* TOAST */
+    .toast-area {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000; pointer-events: none;
+    }
+    .toast {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 10px 24px;
+      border-radius: var(--radius);
+      font-weight: 500;
+      font-size: 0.9rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: 0.2s;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 540px) {
+      .card { padding: 24px 20px; }
+      .config-row { grid-template-columns: 1fr 1fr; }
+      .face-content { font-size: 1.4rem; }
+      .start-title, .result-title { font-size: 2rem; }
+      .result-stats { grid-template-columns: repeat(2, 1fr); }
+      .nav-bar { flex-wrap: wrap; gap: 8px; }
+      .nav-group { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+<div class="platform">
+
+  <div class="top-bar">
+    <div class="wordmark">Quick<span>Flash</span></div>
+    <button class="theme-btn" id="themeToggle">☀ Light</button>
+  </div>
+
+  <!-- START SCREEN -->
+  <div id="startScreen" class="card">
+    <h1 class="start-title">Study smarter,<br>not harder.</h1>
+    <p class="start-subtitle">Upload a JSON deck and start flipping.</p>
+
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput" accept=".json,application/json">
+      <div class="drop-icon" id="dropIcon">📇</div>
+      <div class="drop-text" id="dropText">Drop your JSON file here, or click to browse</div>
+      <div class="drop-hint" id="dropHint">Supports .json files</div>
+    </div>
+
+    <div class="config-row">
+      <div class="config-group">
+        <label>Card Limit</label>
+        <input type="number" id="cardLimit" min="1" placeholder="All cards">
+      </div>
+      <div class="config-group">
+        <label>Shuffle Deck</label>
+        <select id="shuffleDeck">
+          <option value="yes">Yes — random order</option>
+          <option value="no">No — keep original</option>
+        </select>
+      </div>
+      <div class="config-group">
+        <label>Start Side</label>
+        <select id="startSide">
+          <option value="front">Front first</option>
+          <option value="back">Back first</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="start-btn" id="startBtn" disabled>Start Studying</button>
+
+    <div class="format-hint">
+      <strong>JSON format:</strong> Array of objects with <code>"front"</code> &amp; <code>"back"</code> fields.
+      Aliases <code>"question"</code>/<code>"answer"</code> also work. Optional <code>"hint"</code> field shown on the question side.
+    </div>
+  </div>
+
+  <!-- STUDY PANEL -->
+  <div id="studyPanel" class="card" style="display:none">
+    <div class="study-header">
+      <div class="progress-track">
+        <div class="progress-meta">
+          <span id="progressLabel">Card 1 of 10</span>
+          <span id="ratedLabel">0 / 10 rated</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="mastery-badge" id="masteryBadge">0%</div>
+    </div>
+
+    <div class="card-map" id="cardMap"></div>
+
+    <div class="fc-scene">
+      <div class="fc-card" id="fcCard">
+        <div class="fc-face fc-front">
+          <div class="face-badge is-front" id="badge1">FRONT</div>
+          <div class="face-content" id="frontContent">—</div>
+          <div class="face-hint" id="frontHint" style="display:none"></div>
+        </div>
+        <div class="fc-face fc-back">
+          <div class="face-badge" id="badge2">BACK</div>
+          <div class="face-content" id="backContent">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flip-area">
+      <span class="flip-hint-text" id="flipHintText">
+        Click card or press <kbd>Space</kbd> to flip
+      </span>
+    </div>
+
+    <div class="rating-bar" id="ratingBar">
+      <button class="btn btn-known" id="knownBtn">✓ &nbsp;Got it</button>
+      <button class="btn btn-learning" id="learningBtn">✗ &nbsp;Still learning</button>
+    </div>
+
+    <div class="nav-bar">
+      <div class="nav-group">
+        <button class="btn" id="prevBtn" disabled>← Prev</button>
+        <button class="btn" id="nextBtn">Next →</button>
+      </div>
+      <div class="nav-group">
+        <button class="btn primary" id="endBtn">End Session</button>
+        <button class="btn" id="newDeckBtn">📂 New Deck</button>
+      </div>
+    </div>
+
+    <div class="key-hint">
+      <kbd>←</kbd> <kbd>→</kbd> navigate &nbsp;·&nbsp;
+      <kbd>Space</kbd> or <kbd>⏎</kbd> flip &nbsp;·&nbsp;
+      <kbd>Y</kbd> got it &nbsp;·&nbsp; <kbd>N</kbd> still learning
+    </div>
+  </div>
+
+  <!-- RESULT PANEL -->
+  <div id="resultPanel" class="card" style="display:none">
+    <h2 class="result-title" id="resultTitle">Session complete.</h2>
+    <p class="result-subtitle" id="resultSubtitle">Here's how you did:</p>
+
+    <div class="result-bar-wrap">
+      <div class="result-bar-bg">
+        <div class="result-bar-fill" id="resultBarFill"></div>
+      </div>
+    </div>
+
+    <div class="result-stats">
+      <div class="stat-box stat-known">
+        <div class="stat-value" id="statKnown">0</div>
+        <div class="stat-label">Known</div>
+      </div>
+      <div class="stat-box stat-learning">
+        <div class="stat-value" id="statLearning">0</div>
+        <div class="stat-label">Still Learning</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="statSeen">0</div>
+        <div class="stat-label">Seen (unrated)</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="statUnseen">0</div>
+        <div class="stat-label">Unseen</div>
+      </div>
+    </div>
+
+    <div class="result-actions">
+      <button class="btn primary" id="restudyLearningBtn">↺ Re-study Still Learning</button>
+      <button class="btn" id="restudyAllBtn">↺ Re-study All</button>
+      <button class="btn" id="resultNewDeckBtn">📂 New Deck</button>
+    </div>
+
+    <button class="btn" id="reviewToggleBtn" style="width:100%">Show Card Review ▾</button>
+    <div class="review-section" id="reviewSection">
+      <div class="review-list" id="reviewList"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast-area">
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // STATE
+  let rawCards = [];
+  let cards    = [];
+  let statuses = [];   // null | 'seen' | 'known' | 'learning'
+  let currentIndex = 0;
+  let isFlipped    = false;
+  let startSide    = 'front';
+
+  // DOM
+  const startScreen = document.getElementById('startScreen');
+  const studyPanel  = document.getElementById('studyPanel');
+  const resultPanel = document.getElementById('resultPanel');
+
+  const fileInput = document.getElementById('fileInput');
+  const dropZone  = document.getElementById('dropZone');
+  const dropIcon  = document.getElementById('dropIcon');
+  const dropText  = document.getElementById('dropText');
+  const dropHint  = document.getElementById('dropHint');
+  const startBtn  = document.getElementById('startBtn');
+
+  const progressLabel = document.getElementById('progressLabel');
+  const ratedLabel    = document.getElementById('ratedLabel');
+  const progressFill  = document.getElementById('progressFill');
+  const masteryBadge  = document.getElementById('masteryBadge');
+  const cardMapEl     = document.getElementById('cardMap');
+
+  const fcCard       = document.getElementById('fcCard');
+  const badge1       = document.getElementById('badge1');
+  const badge2       = document.getElementById('badge2');
+  const frontContent = document.getElementById('frontContent');
+  const backContent  = document.getElementById('backContent');
+  const frontHint    = document.getElementById('frontHint');
+  const flipHintText = document.getElementById('flipHintText');
+  const ratingBar    = document.getElementById('ratingBar');
+  const knownBtn     = document.getElementById('knownBtn');
+  const learningBtn  = document.getElementById('learningBtn');
+  const prevBtn      = document.getElementById('prevBtn');
+  const nextBtn      = document.getElementById('nextBtn');
+  const endBtn       = document.getElementById('endBtn');
+  const newDeckBtn   = document.getElementById('newDeckBtn');
+
+  const resultTitle    = document.getElementById('resultTitle');
+  const resultSubtitle = document.getElementById('resultSubtitle');
+  const resultBarFill  = document.getElementById('resultBarFill');
+  const statKnown      = document.getElementById('statKnown');
+  const statLearning   = document.getElementById('statLearning');
+  const statSeen       = document.getElementById('statSeen');
+  const statUnseen     = document.getElementById('statUnseen');
+  const restudyLearningBtn = document.getElementById('restudyLearningBtn');
+  const restudyAllBtn      = document.getElementById('restudyAllBtn');
+  const resultNewDeckBtn   = document.getElementById('resultNewDeckBtn');
+  const reviewToggleBtn    = document.getElementById('reviewToggleBtn');
+  const reviewSection      = document.getElementById('reviewSection');
+  const reviewList         = document.getElementById('reviewList');
+
+  const themeToggle = document.getElementById('themeToggle');
+  const toastEl     = document.getElementById('toast');
+
+  // THEME
+  let darkMode = false;
+  function applyTheme() {
+    document.body.classList.toggle('dark', darkMode);
+    themeToggle.textContent = darkMode ? '☾ Dark' : '☀ Light';
+    localStorage.setItem('qf-theme', darkMode ? 'dark' : 'light');
+  }
+  {
+    const saved = localStorage.getItem('qf-theme');
+    darkMode = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme();
+  }
+  themeToggle.addEventListener('click', () => { darkMode = !darkMode; applyTheme(); });
+
+  // TOAST
+  let toastTimer;
+  function showToast(msg, duration = 2500) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), duration);
+  }
+
+  // FILE HANDLING
+  fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    handleFile(e.dataTransfer.files[0]);
+  });
+
+  function handleFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try { parseCards(JSON.parse(ev.target.result), file.name); }
+      catch (err) { showToast('Invalid JSON: ' + err.message, 4000); }
+    };
+    reader.readAsText(file);
+  }
+
+  function parseCards(arr, fileName) {
+    if (!Array.isArray(arr)) { showToast('JSON must be an array', 4000); return; }
+    if (!arr.length) { showToast('Array is empty', 4000); return; }
+    const parsed = [];
+    for (let i = 0; i < arr.length; i++) {
+      const item  = arr[i];
+      const front = item.front ?? item.question;
+      const back  = item.back  ?? item.answer;
+      if (front === undefined || back === undefined) {
+        showToast(`Card ${i + 1}: missing "front"/"back" fields`, 4000);
+        return;
+      }
+      parsed.push({
+        front: String(front).trim(),
+        back:  String(back).trim(),
+        hint:  item.hint ? String(item.hint).trim() : null
+      });
+    }
+    rawCards = parsed;
+    dropIcon.textContent = '✅';
+    dropText.textContent = `${rawCards.length} cards loaded · ${fileName || ''}`;
+    dropHint.textContent = 'Ready to study';
+    dropZone.classList.add('file-loaded');
+    startBtn.disabled = false;
+    showToast(`Loaded ${rawCards.length} flashcards`);
+  }
+
+  // DECK PREP
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function prepareDeck(subset) {
+    let deck = subset ? [...subset] : [...rawCards];
+    if (document.getElementById('shuffleDeck').value === 'yes') shuffle(deck);
+    if (!subset) {
+      const limit = parseInt(document.getElementById('cardLimit').value, 10);
+      if (!isNaN(limit) && limit > 0) deck = deck.slice(0, limit);
+    }
+    return deck;
+  }
+
+  // RENDER CARD (with optional skipAnimation)
+  function renderCard(skipAnimation = false) {
+    const card  = cards[currentIndex];
+    const total = cards.length;
+
+    // If skipping animation (navigation), temporarily disable transition
+    if (skipAnimation) {
+      fcCard.style.transition = 'none';
+    }
+
+    // Remove flipped class BEFORE updating content (prevents flicker)
+    fcCard.classList.remove('flipped');
+
+    // Update face content
+    const frontIsQ = (startSide === 'front');
+    badge1.textContent = frontIsQ ? 'FRONT' : 'BACK';
+    badge2.textContent = frontIsQ ? 'BACK'  : 'FRONT';
+    badge1.className   = 'face-badge' + (frontIsQ ? ' is-front' : '');
+    badge2.className   = 'face-badge' + (frontIsQ ? '' : ' is-front');
+    frontContent.textContent = frontIsQ ? card.front : card.back;
+    backContent.textContent  = frontIsQ ? card.back  : card.front;
+
+    // Hint handling
+    if (card.hint && !isFlipped && frontIsQ) {
+      frontHint.textContent = '💡 ' + card.hint;
+      frontHint.style.display = 'block';
+    } else {
+      frontHint.style.display = 'none';
+    }
+
+    // Re-apply flipped state if needed
+    if (isFlipped) {
+      fcCard.classList.add('flipped');
+    }
+
+    // If we skipped animation, restore it after content is painted
+    if (skipAnimation) {
+      // Force a reflow to apply the class change immediately
+      void fcCard.offsetWidth;
+      fcCard.style.transition = '';
+    }
+
+    // UI updates
+    flipHintText.innerHTML = isFlipped 
+      ? 'Showing answer — rate yourself below'
+      : 'Click card or press <kbd>Space</kbd> to flip';
+    ratingBar.classList.toggle('visible', isFlipped);
+    
+    progressLabel.textContent = `Card ${currentIndex + 1} of ${total}`;
+    const rated = statuses.filter(s => s === 'known' || s === 'learning').length;
+    ratedLabel.textContent = `${rated} / ${total} rated`;
+    progressFill.style.width = ((currentIndex + 1) / total * 100) + '%';
+    const knownCount = statuses.filter(s => s === 'known').length;
+    masteryBadge.textContent = Math.round(knownCount / total * 100) + '%';
+    
+    prevBtn.disabled = currentIndex === 0;
+    nextBtn.disabled = currentIndex === total - 1;
+    
+    renderCardMap();
+  }
+
+  function renderCardMap() {
+    cardMapEl.innerHTML = '';
+    cards.forEach((_, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'map-dot';
+      dot.textContent = i + 1;
+      const s = statuses[i];
+      if (i === currentIndex)    dot.classList.add('current');
+      else if (s === 'known')    dot.classList.add('known');
+      else if (s === 'learning') dot.classList.add('learning');
+      else if (s === 'seen')     dot.classList.add('seen');
+      dot.addEventListener('click', () => {
+        currentIndex = i;
+        isFlipped = false;
+        renderCard(true);  // skip animation when jumping via map
+      });
+      cardMapEl.appendChild(dot);
+    });
+  }
+
+  // FLIP
+  function flip() {
+    isFlipped = !isFlipped;
+    if (isFlipped && !statuses[currentIndex]) {
+      statuses[currentIndex] = 'seen';
+    }
+    renderCard();  // normal flip (smooth)
+  }
+
+  // RATE
+  function rate(status) {
+    statuses[currentIndex] = status;
+    renderCard();  // update UI (rating bar visible state)
+    if (currentIndex < cards.length - 1) {
+      currentIndex++;
+      isFlipped = false;
+      renderCard(true);  // skip animation when moving to next
+    } else {
+      // If on last card and rated, check if any unrated remain
+      const unrated = statuses.filter(s => !s || s === 'seen').length;
+      if (unrated > 0) {
+        showToast(`${unrated} card${unrated > 1 ? 's' : ''} still unrated`);
+        renderCard(true);  // stay on last card, but still skip animation
+      } else {
+        endSession();
+      }
+    }
+  }
+
+  // LIFECYCLE
+  function startStudy(subset) {
+    cards = prepareDeck(subset);
+    if (!cards.length) { showToast('No cards to study'); return; }
+    statuses     = new Array(cards.length).fill(null);
+    currentIndex = 0;
+    isFlipped    = false;
+    startSide    = document.getElementById('startSide').value;
+    resultBarFill.style.width = '0%';
+    show(studyPanel);
+    renderCard(true);  // skip animation for first card
+  }
+
+  function endSession() {
+    const knownCount    = statuses.filter(s => s === 'known').length;
+    const learningCount = statuses.filter(s => s === 'learning').length;
+    const seenCount     = statuses.filter(s => s === 'seen').length;
+    const unseenCount   = statuses.filter(s => !s).length;
+    const total         = cards.length;
+    const pct           = Math.round(knownCount / total * 100);
+
+    statKnown.textContent    = knownCount;
+    statLearning.textContent = learningCount;
+    statSeen.textContent     = seenCount;
+    statUnseen.textContent   = unseenCount;
+
+    if (pct >= 80) {
+      resultTitle.textContent   = 'Excellent!';
+      resultSubtitle.textContent = `${pct}% mastery — you're crushing it.`;
+    } else if (pct >= 50) {
+      resultTitle.textContent   = 'Good progress.';
+      resultSubtitle.textContent = `${pct}% mastery — keep it up!`;
+    } else {
+      resultTitle.textContent   = 'Keep studying.';
+      resultSubtitle.textContent = `${pct}% mastery — you'll get there.`;
+    }
+
+    setTimeout(() => { resultBarFill.style.width = pct + '%'; }, 50);
+
+    const notKnown = cards.filter((_, i) => statuses[i] !== 'known');
+    restudyLearningBtn.disabled   = notKnown.length === 0;
+    restudyLearningBtn.textContent = notKnown.length
+      ? `↺ Re-study Still Learning (${notKnown.length})`
+      : '↺ Re-study Still Learning (none!)';
+
+    reviewSection.style.display = 'none';
+    reviewToggleBtn.textContent = 'Show Card Review ▾';
+    show(resultPanel);
+  }
+
+  function buildReview() {
+    reviewList.innerHTML = '';
+    cards.forEach((card, i) => {
+      const s   = statuses[i] || 'unseen';
+      const div = document.createElement('div');
+      div.className = 'review-item '
+        + (s === 'known' ? 'known-item' : s === 'learning' ? 'learning-item' : '');
+      const label =
+        s === 'known'    ? '✓ Got it' :
+        s === 'learning' ? '✗ Still learning' :
+        s === 'seen'     ? '— Seen (unrated)' : '— Unseen';
+      div.innerHTML = `
+        <div class="review-status">${label}</div>
+        <div class="review-front">${escHtml(card.front)}</div>
+        <div class="review-back">${escHtml(card.back)}</div>
+      `;
+      reviewList.appendChild(div);
+    });
+  }
+
+  function resetToStart() {
+    rawCards = [];
+    startBtn.disabled = true;
+    dropIcon.textContent = '📇';
+    dropText.textContent = 'Drop your JSON file here, or click to browse';
+    dropHint.textContent = 'Supports .json files';
+    dropZone.classList.remove('file-loaded');
+    fileInput.value = '';
+    resultBarFill.style.width = '0%';
+    show(startScreen);
+  }
+
+  // EVENTS
+  startBtn.addEventListener('click', () => startStudy());
+  fcCard.addEventListener('click', flip);
+  knownBtn.addEventListener('click', () => rate('known'));
+  learningBtn.addEventListener('click', () => rate('learning'));
+  prevBtn.addEventListener('click', () => {
+    if (currentIndex > 0) { currentIndex--; isFlipped = false; renderCard(true); }
+  });
+  nextBtn.addEventListener('click', () => {
+    if (currentIndex < cards.length - 1) { currentIndex++; isFlipped = false; renderCard(true); }
+  });
+  endBtn.addEventListener('click', endSession);
+  newDeckBtn.addEventListener('click', resetToStart);
+  resultNewDeckBtn.addEventListener('click', resetToStart);
+  restudyAllBtn.addEventListener('click', () => startStudy());
+  restudyLearningBtn.addEventListener('click', () => {
+    const subset = cards.filter((_, i) => statuses[i] !== 'known');
+    if (!subset.length) { showToast('All cards known — great job! 🎉'); return; }
+    startStudy(subset);
+  });
+  reviewToggleBtn.addEventListener('click', () => {
+    if (reviewSection.style.display === 'none') {
+      buildReview();
+      reviewSection.style.display = 'block';
+      reviewToggleBtn.textContent = 'Hide Card Review ▴';
+    } else {
+      reviewSection.style.display = 'none';
+      reviewToggleBtn.textContent = 'Show Card Review ▾';
+    }
+  });
+
+  // KEYBOARD
+  document.addEventListener('keydown', e => {
+    if (studyPanel.style.display !== 'block') return;
+    if (e.key === 'ArrowLeft')                        { e.preventDefault(); prevBtn.click(); }
+    else if (e.key === 'ArrowRight')                  { e.preventDefault(); nextBtn.click(); }
+    else if (e.key === ' ' || e.key === 'Enter')      { e.preventDefault(); flip(); }
+    else if ((e.key === 'y' || e.key === 'Y') && isFlipped) rate('known');
+    else if ((e.key === 'n' || e.key === 'N') && isFlipped) rate('learning');
+  });
+  window.addEventListener('keydown', e => {
+    if (e.code === 'Space' && studyPanel.style.display === 'block') e.preventDefault();
+  }, false);
+
+  // UTILS
+  function show(el) {
+    [startScreen, studyPanel, resultPanel].forEach(p => p.style.display = 'none');
+    el.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function escHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  show(startScreen);
+})();
+</script>
+</body>
+</html>
