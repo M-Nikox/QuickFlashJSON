@@ -1,0 +1,42 @@
+[
+  {
+    "front": "France",
+    "back": "Paris",
+    "hint": "City of Light"
+  },
+  {
+    "front": "Japan",
+    "back": "Tokyo",
+    "hint": "Largest metropolitan area in the world"
+  },
+  {
+    "front": "Brazil",
+    "back": "Brasília",
+    "hint": "Planned city, inaugurated in 1960"
+  },
+  {
+    "front": "Australia",
+    "back": "Canberra",
+    "hint": "Not Sydney or Melbourne"
+  },
+  {
+    "front": "Canada",
+    "back": "Ottawa",
+    "hint": "Located in Ontario"
+  },
+  {
+    "front": "Egypt",
+    "back": "Cairo",
+    "hint": "Near the Great Pyramids of Giza"
+  },
+  {
+    "front": "India",
+    "back": "New Delhi",
+    "hint": "Part of the National Capital Territory"
+  },
+  {
+    "front": "Italy",
+    "back": "Rome",
+    "hint": "The Eternal City"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "question": "Hello",
+    "answer": "Hola"
+  },
+  {
+    "question": "Goodbye",
+    "answer": "Adiós"
+  },
+  {
+    "question": "Please",
+    "answer": "Por favor"
+  },
+  {
+    "question": "Thank you",
+    "answer": "Gracias"
+  },
+  {
+    "question": "Yes",
+    "answer": "Sí"
+  },
+  {
+    "question": "No",
+    "answer": "No"
+  },
+  {
+    "question": "Excuse me",
+    "answer": "Perdón / Disculpe"
+  },
+  {
+    "question": "I don't understand",
+    "answer": "No entiendo"
+  },
+  {
+    "question": "How are you?",
+    "answer": "¿Cómo estás?"
+  },
+  {
+    "question": "What is your name?",
+    "answer": "¿Cómo te llamas?"
+  }
+]
