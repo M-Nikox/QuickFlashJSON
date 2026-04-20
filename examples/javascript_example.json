@@ -1,0 +1,36 @@
+[
+  {
+    "front": "What does `typeof null` return?",
+    "back": "object",
+    "hint": "It's a well‑known bug in JavaScript"
+  },
+  {
+    "front": "Which keyword is used to declare a constant variable?",
+    "back": "const"
+  },
+  {
+    "front": "What is the result of `2 + '2'`?",
+    "back": "22",
+    "hint": "Type coercion"
+  },
+  {
+    "front": "What method adds an element to the end of an array?",
+    "back": "push()"
+  },
+  {
+    "front": "Which function is used to print to the console?",
+    "back": "console.log()"
+  },
+  {
+    "front": "What does `===` compare?",
+    "back": "Value and type (strict equality)"
+  },
+  {
+    "front": "What is a promise?",
+    "back": "An object representing eventual completion or failure of an async operation"
+  },
+  {
+    "front": "What is the purpose of `JSON.stringify()`?",
+    "back": "Converts a JavaScript object to a JSON string"
+  }
+]
